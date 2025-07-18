@@ -40,16 +40,29 @@ namespace OpenIddict_Server.Controllers
             return View();
         }
 
-        [HttpPost("~/connect/logout")]
+    //    [AcceptVerbs("GET", "POST")]
+    //    [Route("~/connect/logout")]
+    //    public IActionResult Logout()
+    //    {
+    //        return SignOut(
+    //new AuthenticationProperties(),
+    //            OpenIddict.Server.AspNetCore.OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+    //    }
+
+        [AcceptVerbs("GET", "POST")]
+        [Route("~/connect/logout")]
         public IActionResult Logout()
         {
             return SignOut(
                 new AuthenticationProperties
                 {
-                    RedirectUri = "/" // or a "You are logged out" page
+                    RedirectUri = "/" // can be anything — or return View()
                 },
-                IdentityConstants.ApplicationScheme);
+                IdentityConstants.ApplicationScheme, // Sign out ASP.NET Identity session
+                OpenIddict.Server.AspNetCore.OpenIddictServerAspNetCoreDefaults.AuthenticationScheme // Sign out OpenIddict session
+            );
         }
+
 
     }
 

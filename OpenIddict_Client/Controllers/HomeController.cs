@@ -24,11 +24,6 @@ public class HomeController : Controller
         return View();
     }
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
-
     public IActionResult Login()
     {
         return Challenge(new AuthenticationProperties { RedirectUri = "/" });
@@ -38,15 +33,14 @@ public class HomeController : Controller
     {
         var request = HttpContext.Request;
 
-        // Current app's base URL (client)
         var clientBaseUrl = $"{request.Scheme}://{request.Host}/";
 
-        // Authorization server base URL — ideally from config
         var authServerBaseUrl = _configuration["OpenIddict:Authority"]
             ?? "https://localhost:7217"; // fallback if not in config
 
-        var postLogoutRedirectUri = $"{clientBaseUrl}";
-        var logoutRedirectUri = $"{authServerBaseUrl}/logout?post_logout_redirect_uri={Uri.EscapeDataString(postLogoutRedirectUri)}";
+        var postLogoutRedirectUri = $"{clientBaseUrl}signout-callback-oidc";
+
+        var logoutRedirectUri = $"{authServerBaseUrl}/connect/logout?post_logout_redirect_uri={Uri.EscapeDataString(postLogoutRedirectUri)}";
 
         return SignOut(new AuthenticationProperties
         {

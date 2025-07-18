@@ -1,25 +1,169 @@
 ﻿@{
     ViewData["Title"] = "Login";
+    var isValid = ViewData.ModelState.IsValid;
 }
 
-<h2>Login</h2>
+<style>
+    body {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f5fff6 0%, #e0f7e9 100%);
+    }
+    .energy-card {
+        background: rgba(255, 255, 255, 0.92);
+        border-radius: 22px;
+        box-shadow: 0 8px 40px 0 rgba(80, 255, 80, 0.10), 0 0 32px 0 #a8e06322;
+        padding: 2.7rem 2rem 2.2rem 2rem;
+        margin-top: 3rem;
+        margin-bottom: 3rem;
+        backdrop-filter: blur(8px) saturate(160%);
+        border: 2px solid #a8e06333;
+        transition: box-shadow 0.3s, transform 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+    .energy-logo {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 1.7rem;
+    }
+    .energy-logo-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #a8e063 60%, #56ab2f 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 32px 0 #a8e06344, 0 2px 12px #56ab2f22;
+        border: 3px solid #fff;
+    }
+    .energy-title {
+        font-weight: 900;
+        font-size: 2.1rem;
+        letter-spacing: 1px;
+        text-align: center;
+        margin-bottom: 2.1rem;
+        color: #1b5e20;
+        text-shadow: 0 2px 8px #a8e06322;
+    }
+    .input-group-text {
+        background: linear-gradient(135deg, #a8e063 60%, #56ab2f 100%);
+        border: none;
+        color: #fff;
+        font-size: 1.15rem;
+        border-radius: 10px 0 0 10px;
+        box-shadow: 0 0 8px #a8e06322;
+    }
+    .form-control {
+        border-radius: 0 10px 10px 0;
+        font-size: 1.08rem;
+        background: rgba(255,255,255,0.95);
+        border: 2px solid #a8e06333;
+        transition: border-color 0.3s, box-shadow 0.3s;
+        box-shadow: 0 0 0 #a8e06322;
+        padding-left: 0.75rem;
+        min-height: 46px;
+    }
+    .form-control:focus {
+        border-color: #56ab2f;
+        box-shadow: 0 0 8px 2px #a8e06344;
+        background: #fff;
+        outline: none;
+    }
+    .energy-btn {
+        background: linear-gradient(90deg, #f9d423 0%, #56ab2f 100%);
+        border: none;
+        border-radius: 12px;
+        color: #fff;
+        font-size: 1.13rem;
+        font-weight: 700;
+        transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+        box-shadow: 0 2px 12px #a8e06322;
+        margin-top: 0.7rem;
+        margin-bottom: 0.7rem;
+        letter-spacing: 0.5px;
+        position: relative;
+        overflow: hidden;
+    }
+    .energy-btn:hover {
+        background: linear-gradient(90deg, #56ab2f 0%, #f9d423 100%);
+        box-shadow: 0 6px 24px #f9d42333;
+        transform: scale(1.02);
+    }
+    .forgot-link {
+        color: #56ab2f;
+        text-decoration: none;
+        font-size: 1rem;
+        transition: color 0.2s;
+        font-weight: 500;
+    }
+    .forgot-link:hover {
+        color: #f9d423;
+        text-decoration: underline;
+    }
+    .form-check-label {
+        font-size: 1rem;
+        color: #388e3c;
+    }
+    .alert-danger {
+        border-radius: 10px;
+        font-size: 1rem;
+        border: 2px solid #f9d42344;
+        background: #fffbe6;
+        color: #b8860b;
+        box-shadow: 0 0 8px #f9d42322;
+    }
+    @@media (max-width: 576px) {
+        .energy-card {
+            padding: 1.2rem 0.3rem;
+        }
+        .energy-title {
+            font-size: 1.3rem;
+        }
+    }
+</style>
 
-<form method="post" asp-controller="Account" asp-action="Login">
-    <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
-    <div>
-        <label>Username</label>
-        <input type="text" name="username" />
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="energy-card col-12 col-sm-10 col-md-7 col-lg-5">
+        <div class="energy-logo">
+            <div class="energy-logo-icon">
+                <!-- SVG Lightning Bolt for Energy Theme -->
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <g>
+                    <path d="M22 2L8 24H20L18 38L32 16H20L22 2Z" fill="#fff200" stroke="#56ab2f" stroke-width="2" stroke-linejoin="round"/>
+                  </g>
+                </svg>
+            </div>
+        </div>
+        <div class="energy-title">Energy Portal Login</div>
+        <form method="post" asp-controller="Account" asp-action="Login">
+            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <svg width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="#a8e063"/><path d="M2 20c0-3.31 5.33-6 10-6s10 2.69 10 6" stroke="#56ab2f" stroke-width="2" fill="none"/></svg>
+                    </span>
+                    <input type="text" class="form-control" id="username" name="username" required autofocus placeholder="Enter your username" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <svg width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2" fill="#a8e063"/><path d="M8 10V7a4 4 0 1 1 8 0v3" stroke="#56ab2f" stroke-width="2" fill="none"/></svg>
+                    </span>
+                    <input type="password" class="form-control" id="password" name="password" required placeholder="Enter your password" />
+                </div>
+            </div>
+            <button type="submit" class="btn energy-btn w-100">Sign In</button>
+        </form>
+        @if (!isValid)
+        {
+            <div class="alert alert-danger mt-3" role="alert">
+                Invalid login attempt.
+            </div>
+        }
     </div>
-    <div>
-        <label>Password</label>
-        <input type="password" name="password" />
-    </div>
-    <button type="submit">Login</button>
-</form>
-
-@if (!ViewData.ModelState.IsValid)
-{
-    <div style="color:red">
-        Invalid login attempt.
-    </div>
-}
+</div>

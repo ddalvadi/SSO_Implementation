@@ -2,16 +2,117 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">OpenIddict OIDC Client</h1>
+<style>
+    body {
+        background: linear-gradient(135deg, #f5fff6 0%, #e0f7e9 100%);
+        min-height: 100vh;
+    }
+    .energy-home-card {
+        background: rgba(255,255,255,0.96);
+        border-radius: 22px;
+        box-shadow: 0 8px 40px 0 rgba(80, 255, 80, 0.10), 0 0 32px 0 #a8e06322;
+        padding: 2.5rem 2rem 2rem 2rem;
+        margin: 3rem auto;
+        max-width: 480px;
+        backdrop-filter: blur(8px) saturate(160%);
+        border: 2px solid #a8e06333;
+        position: relative;
+    }
+    .energy-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #a8e063 60%, #56ab2f 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.2rem auto;
+        box-shadow: 0 0 24px 0 #a8e06344, 0 2px 8px #56ab2f22;
+        border: 2.5px solid #fff;
+    }
+    .energy-title {
+        font-weight: 900;
+        font-size: 2.1rem;
+        letter-spacing: 1px;
+        text-align: center;
+        margin-bottom: 1.1rem;
+        color: #1b5e20;
+        text-shadow: 0 2px 8px #a8e06322;
+    }
+    .energy-btn-primary {
+        background: linear-gradient(90deg, #f9d423 0%, #56ab2f 100%);
+        border: none;
+        border-radius: 12px;
+        color: #fff;
+        font-size: 1.13rem;
+        font-weight: 700;
+        transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+        box-shadow: 0 2px 12px #a8e06322;
+        margin-top: 0.7rem;
+        margin-bottom: 0.7rem;
+        letter-spacing: 0.5px;
+        padding: 0.6rem 2.2rem;
+        display: inline-block;
+    }
+    .energy-btn-primary:hover {
+        background: linear-gradient(90deg, #56ab2f 0%, #f9d423 100%);
+        box-shadow: 0 6px 24px #f9d42333;
+        transform: scale(1.02);
+        color: #fff;
+        text-decoration: none;
+    }
+    .energy-btn-danger {
+        background: linear-gradient(90deg, #ff5858 0%, #f09819 100%);
+        border: none;
+        border-radius: 12px;
+        color: #fff;
+        font-size: 1.13rem;
+        font-weight: 700;
+        transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+        box-shadow: 0 2px 12px #f9d42322;
+        margin-top: 0.7rem;
+        margin-bottom: 0.7rem;
+        letter-spacing: 0.5px;
+        padding: 0.6rem 2.2rem;
+        display: inline-block;
+    }
+    .energy-btn-danger:hover {
+        background: linear-gradient(90deg, #f09819 0%, #ff5858 100%);
+        box-shadow: 0 6px 24px #f9d42333;
+        transform: scale(1.02);
+        color: #fff;
+        text-decoration: none;
+    }
+    .energy-welcome {
+        font-size: 1.15rem;
+        color: #388e3c;
+        margin-bottom: 1.2rem;
+        text-align: center;
+    }
+</style>
 
-    @if (User.Identity?.IsAuthenticated ?? false)
-    {
-        <p>Hello, @User.Identity.Name!</p>
-        <p><a href="/Home/Logout" class="btn btn-danger">Logout</a></p>
-    }
-    else
-    {
-        <p><a href="/Home/Login" class="btn btn-primary">Login with OpenIddict</a></p>
-    }
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="energy-home-card text-center">
+        <div class="energy-icon">
+            <!-- Lightning bolt SVG for energy theme -->
+            <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g>
+                    <path d="M22 2L8 24H20L18 38L32 16H20L22 2Z" fill="#fff200" stroke="#56ab2f" stroke-width="2" stroke-linejoin="round"/>
+                </g>
+            </svg>
+        </div>
+        <div class="energy-title">OpenIddict OIDC Client</div>
+        <div class="energy-welcome">
+            Secure, energy-efficient authentication for your platform.
+        </div>
+        @if (User.Identity?.IsAuthenticated ?? false)
+        {
+            <p>Hello, <b>@User.Identity.Name</b>!</p>
+            <p><a href="/Home/Logout" class="energy-btn-danger">Logout</a></p>
+        }
+        else
+        {
+            <p><a href="/Home/Login" class="energy-btn-primary">Login with OpenIddict</a></p>
+        }
+    </div>
 </div>

@@ -45,7 +45,8 @@ builder.Services.AddOpenIddict()
 
         options.UseAspNetCore()
                .EnableAuthorizationEndpointPassthrough()
-               .EnableTokenEndpointPassthrough();
+               .EnableTokenEndpointPassthrough()
+               .EnableEndSessionEndpointPassthrough();
     })
     .AddValidation(options =>
     {
@@ -95,7 +96,6 @@ using (var scope = app.Services.CreateScope())
             OpenIddictConstants.Permissions.Endpoints.Authorization,
             OpenIddictConstants.Permissions.Endpoints.Token,
             OpenIddictConstants.Permissions.Endpoints.EndSession,
-            //OpenIddictConstants.Permissions.Endpoints.Logout,
             "ept:logout",
             OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
             OpenIddictConstants.Permissions.ResponseTypes.Code,
@@ -109,6 +109,8 @@ using (var scope = app.Services.CreateScope())
         }
     });
 }
+
+app.UseStaticFiles();
 
 // ✅ Middleware
 app.UseHttpsRedirection();

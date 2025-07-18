@@ -25,6 +25,14 @@ builder.Services.AddAuthentication(options =>
 
     options.TokenValidationParameters.NameClaimType = "name";
     options.RequireHttpsMetadata = false; // ONLY FOR DEVELOPMENT
+
+    options.Events.OnSignedOutCallbackRedirect = context =>
+    {
+        context.HandleResponse();
+        context.Response.Redirect("/");
+        return Task.CompletedTask;
+    };
+
 });
 
 
@@ -35,7 +43,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication(); // 🔐
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapDefaultControllerRoute();
