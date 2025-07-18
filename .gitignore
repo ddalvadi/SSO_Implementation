@@ -1,0 +1,50 @@
+# Ignore build results
+bin/
+obj/
+[Bb]uild/
+[Bb]uilds/
+
+# Ignore Visual Studio temporary files, build results, and user-generated files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Ignore Rider settings
+.idea/
+
+# Ignore Visual Studio Code settings
+.vscode/
+
+# Ignore NuGet packages
+*.nupkg
+packages/
+*.snupkg
+
+# Ignore project lock files
+project.lock.json
+project.assets.json
+
+# Ignore logs and debug files
+*.log
+
+# Ignore test results
+TestResults/
+*.vspscc
+*.vssscc
+
+# Ignore publish folder
+publish/
+
+# Ignore .vs folder (Visual Studio hidden folder)
+.vs/
+
+# Ignore ReSharper files
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# Ignore DotCover
+*.dotCover
+
+# Ignore IIS Express folder
+\.vsconfig

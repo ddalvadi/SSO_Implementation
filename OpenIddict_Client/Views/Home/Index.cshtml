@@ -1,0 +1,17 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">OpenIddict OIDC Client</h1>
+
+    @if (User.Identity?.IsAuthenticated ?? false)
+    {
+        <p>Hello, @User.Identity.Name!</p>
+        <p><a href="/Home/Logout" class="btn btn-danger">Logout</a></p>
+    }
+    else
+    {
+        <p><a href="/Home/Login" class="btn btn-primary">Login with OpenIddict</a></p>
+    }
+</div>
