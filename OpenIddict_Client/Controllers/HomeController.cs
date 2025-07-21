@@ -36,7 +36,7 @@ public class HomeController : Controller
         var clientBaseUrl = $"{request.Scheme}://{request.Host}/";
 
         var authServerBaseUrl = _configuration["OpenIddict:Authority"]
-            ?? "https://localhost:7217"; // fallback if not in config
+            ?? "https://localhost:7217";
 
         var postLogoutRedirectUri = $"{clientBaseUrl}signout-callback-oidc";
 

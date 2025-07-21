@@ -121,7 +121,7 @@ app.MapControllers();
 app.MapDefaultControllerRoute(); 
 
 // ✅ Optional test route for root URL
-app.MapGet("/", () => "✅ OpenIddict Authorization Server is running!");
+//app.MapGet("/", () => "✅ OpenIddict Authorization Server is running!");
 
 
 app.Run();
