@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36203.30 d17.14
+VisualStudioVersion = 17.14.36203.30
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenIddict_Server", "OpenIddict_Server.csproj", "{DBE38768-E7B6-4116-BDE1-D555E87A4E40}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OidcClientApp", "..\OpenIddict_Client\OidcClientApp.csproj", "{0A471208-6FF6-4D42-CAE3-14E376CBF91B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenIddict_Client_3.1", "..\OpenIddict_Client_3.1\OpenIddict_Client_3.1.csproj", "{EF002370-6CC6-438B-99F2-20869A65B269}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{0A471208-6FF6-4D42-CAE3-14E376CBF91B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A471208-6FF6-4D42-CAE3-14E376CBF91B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A471208-6FF6-4D42-CAE3-14E376CBF91B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF002370-6CC6-438B-99F2-20869A65B269}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF002370-6CC6-438B-99F2-20869A65B269}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF002370-6CC6-438B-99F2-20869A65B269}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF002370-6CC6-438B-99F2-20869A65B269}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

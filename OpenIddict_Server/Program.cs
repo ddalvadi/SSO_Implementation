@@ -26,27 +26,32 @@ builder.Services.AddOpenIddict()
     })
     .AddServer(options =>
     {
-        // OIDC-compliant endpoints
+        // OIDC endpoints
         options.SetConfigurationEndpointUris("/.well-known/openid-configuration");
         options.SetAuthorizationEndpointUris("/connect/authorize");
         options.SetTokenEndpointUris("/connect/token");
-        options.SetEndSessionEndpointUris("connect/logout");
+        options.SetEndSessionEndpointUris("/connect/logout");
 
-        // 🔐 Required: certs
+        // 🔐 Certificates (for signing and encryption)
         options.AddDevelopmentEncryptionCertificate();
         options.AddDevelopmentSigningCertificate();
 
-        // 🔑 Auth code flow
+        // 🔓 Emit JWTs instead of encrypted tokens
+        options.DisableAccessTokenEncryption();
+
+        // 🔑 Authorization Code Flow with PKCE
         options.AllowAuthorizationCodeFlow()
                .RequireProofKeyForCodeExchange();
 
-        // 🔎 Scopes (OIDC-compliant)
+        // 📚 OIDC scopes
         options.RegisterScopes("openid", "profile", "email");
 
+        // 📡 Integrate with ASP.NET Core pipeline
         options.UseAspNetCore()
                .EnableAuthorizationEndpointPassthrough()
                .EnableTokenEndpointPassthrough()
                .EnableEndSessionEndpointPassthrough();
+      
     })
     .AddValidation(options =>
     {
@@ -85,11 +90,13 @@ using (var scope = app.Services.CreateScope())
         ClientId = "test_client",
         ConsentType = OpenIddictConstants.ConsentTypes.Explicit,
         DisplayName = "Test Client App",
-        RedirectUris = { new Uri("https://localhost:7192/signin-oidc") },
-        PostLogoutRedirectUris =
-        {
-            //new Uri("https://localhost:7192/")
-            new Uri("https://localhost:7192/signout-callback-oidc")
+        RedirectUris = {
+            new Uri("https://app2.localtest.me:5001/signin-oidc"),
+            new Uri("https://app1.localtest.me:8001/signin-oidc"),
+        },
+        PostLogoutRedirectUris = {
+            new Uri("https://app2.localtest.me:5001/signout-callback-oidc"),
+            new Uri("https://app1.localtest.me:8001/signout-callback-oidc"),
         },
         Permissions =
         {
@@ -118,10 +125,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapDefaultControllerRoute(); 
-
-// ✅ Optional test route for root URL
-//app.MapGet("/", () => "✅ OpenIddict Authorization Server is running!");
-
+app.MapDefaultControllerRoute();
 
 app.Run();

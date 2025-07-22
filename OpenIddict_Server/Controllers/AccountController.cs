@@ -40,15 +40,6 @@ namespace OpenIddict_Server.Controllers
             return View();
         }
 
-    //    [AcceptVerbs("GET", "POST")]
-    //    [Route("~/connect/logout")]
-    //    public IActionResult Logout()
-    //    {
-    //        return SignOut(
-    //new AuthenticationProperties(),
-    //            OpenIddict.Server.AspNetCore.OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-    //    }
-
         [AcceptVerbs("GET", "POST")]
         [Route("~/connect/logout")]
         public IActionResult Logout()
