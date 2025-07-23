@@ -39,19 +39,16 @@ builder.Services.AddOpenIddict()
         // 🔓 Emit JWTs instead of encrypted tokens
         options.DisableAccessTokenEncryption();
 
-        // 🔑 Authorization Code Flow with PKCE
         options.AllowAuthorizationCodeFlow()
                .RequireProofKeyForCodeExchange();
 
-        // 📚 OIDC scopes
         options.RegisterScopes("openid", "profile", "email");
 
-        // 📡 Integrate with ASP.NET Core pipeline
         options.UseAspNetCore()
                .EnableAuthorizationEndpointPassthrough()
                .EnableTokenEndpointPassthrough()
                .EnableEndSessionEndpointPassthrough();
-      
+
     })
     .AddValidation(options =>
     {
@@ -59,9 +56,7 @@ builder.Services.AddOpenIddict()
         options.UseAspNetCore();
     });
 
-// 🧾 Swagger + API services
-//builder.Services.AddControllers();
-builder.Services.AddControllersWithViews(); // ✅ enables support for Razor views
+builder.Services.AddControllersWithViews();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -69,35 +64,38 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 
-// 📦 Seed database and client app
 using (var scope = app.Services.CreateScope())
 {
+    Console.WriteLine("Block executed");
+
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     context.Database.EnsureCreated();
 
     var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
-    // 🔄 Delete old client if exists
-    var descriptor = await manager.FindByClientIdAsync("test_client");
-    if (descriptor is not null)
+    var findClient = await manager.FindByClientIdAsync("datasos_client");
+    if (findClient is not null)
     {
-        await manager.DeleteAsync(descriptor);
+        await manager.DeleteAsync(findClient);
     }
 
-    // ✅ Create fresh client with correct redirect URI
-    await manager.CreateAsync(new OpenIddictApplicationDescriptor
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    var redirectUris = dbContext.AppRedirectUris
+     .Where(x => x.ClientId == "datasos_client")
+     .Select(x => new Uri(x.RedirectUri))
+     .ToList();
+
+    var postLogoutUris = dbContext.AppRedirectUris
+        .Where(x => x.ClientId == "datasos_client")
+        .Select(x => new Uri(x.PostLogoutRedirectUri!))
+        .ToList();
+
+    OpenIddictApplicationDescriptor descriptor = new OpenIddictApplicationDescriptor
     {
-        ClientId = "test_client",
+        ClientId = builder.Configuration["OpenIddict:ClientId"],
+        ClientSecret = builder.Configuration["OpenIddict:ClientSecret"],
         ConsentType = OpenIddictConstants.ConsentTypes.Explicit,
-        DisplayName = "Test Client App",
-        RedirectUris = {
-            new Uri("https://app2.localtest.me:5001/signin-oidc"),
-            new Uri("https://app1.localtest.me:8001/signin-oidc"),
-        },
-        PostLogoutRedirectUris = {
-            new Uri("https://app2.localtest.me:5001/signout-callback-oidc"),
-            new Uri("https://app1.localtest.me:8001/signout-callback-oidc"),
-        },
         Permissions =
         {
             OpenIddictConstants.Permissions.Endpoints.Authorization,
@@ -108,18 +106,25 @@ using (var scope = app.Services.CreateScope())
             OpenIddictConstants.Permissions.ResponseTypes.Code,
             OpenIddictConstants.Permissions.Scopes.Email,
             OpenIddictConstants.Permissions.Scopes.Profile,
-             "scp:openId"
+            "scp:openId"
         },
         Requirements =
         {
             OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange
         }
-    });
+    };
+
+    foreach (var uri in redirectUris)
+        descriptor.RedirectUris.Add(uri);
+
+    foreach (var uri in postLogoutUris)
+        descriptor.PostLogoutRedirectUris.Add(uri);
+
+    await manager.CreateAsync(descriptor);
 }
 
 app.UseStaticFiles();
 
-// ✅ Middleware
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

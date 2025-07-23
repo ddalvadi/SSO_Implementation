@@ -1,9 +1,12 @@
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace OpenIddict_Client_3._1
 {
@@ -29,6 +32,7 @@ namespace OpenIddict_Client_3._1
             {
                 options.Authority = Configuration["OpenIddict:Authority"]; // Server URL
                 options.ClientId = Configuration["OpenIddict:ClientId"];
+                options.ClientSecret = Configuration["OpenIddict:ClientSecret"];
                 options.ResponseType = "code";
                 options.SaveTokens = true;
                 options.GetClaimsFromUserInfoEndpoint = true;
@@ -42,6 +46,12 @@ namespace OpenIddict_Client_3._1
                     ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
                 };
 
+                options.Events.OnSignedOutCallbackRedirect = context =>
+                {
+                    context.HandleResponse();
+                    context.Response.Redirect("/");
+                    return Task.CompletedTask;
+                };
             });
             services.AddControllersWithViews();
         }

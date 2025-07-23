@@ -24,7 +24,7 @@ builder.Services.AddAuthentication(options =>
     options.Scope.Add("profile");
 
     options.TokenValidationParameters.NameClaimType = "name";
-    options.RequireHttpsMetadata = false; // ONLY FOR DEVELOPMENT
+    options.RequireHttpsMetadata = false;
 
     options.Events.OnSignedOutCallbackRedirect = context =>
     {

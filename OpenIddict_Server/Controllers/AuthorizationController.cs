@@ -35,7 +35,7 @@ namespace OpenIddict_Server.Controllers
             var identity = (ClaimsIdentity)principal.Identity!;
             identity.AddClaim(new Claim(OpenIddictConstants.Claims.Subject, user.Id)
                 .SetDestinations(OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken));
-            identity.AddClaim(new Claim(OpenIddictConstants.Claims.Name, user.UserName ?? "User")
+            identity.AddClaim(new Claim(OpenIddictConstants.Claims.Name, user.UserName)
                 .SetDestinations(OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken));
 
             principal.SetScopes("openid", "profile");
@@ -67,7 +67,7 @@ namespace OpenIddict_Server.Controllers
 
                 if (!identity.HasClaim(c => c.Type == OpenIddictConstants.Claims.Name))
                 {
-                    identity.AddClaim(new Claim(OpenIddictConstants.Claims.Name, identity.Name ?? "Unkown")
+                    identity.AddClaim(new Claim(OpenIddictConstants.Claims.Name, identity.Name)
                         .SetDestinations(OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken));
                 }
 

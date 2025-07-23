@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OpenIddict_Client_3._1.Models;
@@ -36,11 +39,23 @@ namespace OpenIddict_Client_3._1.Controllers
             return Challenge(new Microsoft.AspNetCore.Authentication.AuthenticationProperties { RedirectUri = returnUrl }, "oidc");
         }
 
-        [HttpPost]
         public IActionResult Logout()
         {
-            return SignOut(new Microsoft.AspNetCore.Authentication.AuthenticationProperties { RedirectUri = "/" }, "Cookies", "oidc");
+            var request = HttpContext.Request;
+
+            var clientBaseUrl = $"{request.Scheme}://{request.Host}/";
+            var authServerBaseUrl = "https://sso.localtest.me:7217";
+            var postLogoutRedirectUri = $"{clientBaseUrl}signout-callback-oidc";
+            var logoutRedirectUri = $"{authServerBaseUrl}/connect/logout?post_logout_redirect_uri={Uri.EscapeDataString(postLogoutRedirectUri)}";
+
+            return SignOut(new AuthenticationProperties
+            {
+                RedirectUri = logoutRedirectUri
+            },
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            "oidc"); 
         }
+
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using OpenIddict_Server.Models;
 
 namespace OpenIddict_Server.Data
 {
@@ -12,5 +13,6 @@ namespace OpenIddict_Server.Data
             base.OnModelCreating(builder);
             builder.UseOpenIddict();
         }
+        public DbSet<AppRedirectUri> AppRedirectUris { get; set; }
     }
 }
