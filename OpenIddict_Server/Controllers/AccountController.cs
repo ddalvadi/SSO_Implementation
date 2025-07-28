@@ -1,19 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using OpenIddict_Server.Data;
+using System.Security.Claims;
+using System.Web;
 
 namespace OpenIddict_Server.Controllers
 {
-    public class AccountController : Controller
+    public class AccountController(IAppDbContextResolver resolver) : Controller
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
-
-        public AccountController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
-        {
-            _signInManager = signInManager;
-            _userManager = userManager;
-        }
+        private readonly IAppDbContextResolver _resolver = resolver;
 
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
@@ -25,20 +21,41 @@ namespace OpenIddict_Server.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string username, string password, string? returnUrl = null)
         {
-            var user = await _userManager.FindByNameAsync(username);
+            var query = HttpUtility.ParseQueryString(returnUrl);
+            var appName = query["app_name"];
+
+            var appDb = _resolver.GetDbContext(appName);
+
+            var user = await appDb.Users
+                .FirstOrDefaultAsync(u => u.Username == username && u.Password == password && !u.IsDeleted && u.IsActive);
+
             if (user != null)
             {
-                var result = await _signInManager.PasswordSignInAsync(user, password, false, false);
-                if (result.Succeeded)
+                var claims = new List<Claim>
                 {
-                    return Redirect(returnUrl ?? "/");
-                }
+                    new(ClaimTypes.Name, user.Username),
+                    new("UserId", user.Id.ToString())
+                };
+
+                var identity = new ClaimsIdentity(claims, "Cookies");
+                var principal = new ClaimsPrincipal(identity);
+
+                await HttpContext.SignInAsync("Cookies", principal);
+
+                //await HttpContext.SignInAsync("Cookies", principal, new AuthenticationProperties
+                //{
+                //    IsPersistent = false
+                //});
+
+
+                return Redirect(returnUrl ?? "/");
             }
 
             ModelState.AddModelError("", "Invalid credentials");
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
+
 
         [AcceptVerbs("GET", "POST")]
         [Route("~/connect/logout")]
@@ -47,13 +64,12 @@ namespace OpenIddict_Server.Controllers
             return SignOut(
                 new AuthenticationProperties
                 {
-                    RedirectUri = "/" // can be anything — or return View()
+                    RedirectUri = "/"
                 },
-                IdentityConstants.ApplicationScheme, // Sign out ASP.NET Identity session
-                OpenIddict.Server.AspNetCore.OpenIddictServerAspNetCoreDefaults.AuthenticationScheme // Sign out OpenIddict session
+                "Cookies",
+                OpenIddict.Server.AspNetCore.OpenIddictServerAspNetCoreDefaults.AuthenticationScheme
             );
         }
-
 
     }
 

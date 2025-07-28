@@ -1,21 +1,42 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
 using OpenIddict_Server.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🔧 EF Core with SQL Server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-    options.UseOpenIddict(); // Required for OpenIddict entity support
 });
 
-// 🧩 Identity setup
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
+builder.Services.AddDataProtection()
+    .PersistKeysToDbContext<ApplicationDbContext>()
+    .SetApplicationName("SSO-OpenIddict");
+
+builder.Services.AddScoped<IAppDbContextResolver, AppDbContextResolver>();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = "Cookies";
+    options.DefaultAuthenticateScheme = "Cookies";
+    options.DefaultSignInScheme = "Cookies";
+    options.DefaultChallengeScheme = "Cookies";
+})
+.AddCookie("Cookies", options =>
+{
+    options.Cookie.Name = "auth_cookie";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.SlidingExpiration = false;
+    options.Cookie.Domain = ".localtest.me";
+    options.Events.OnSigningIn = context =>
+    {
+        context.Properties.IsPersistent = false; // 🔥 Ensures session-only cookie
+        return Task.CompletedTask;
+    };
+});
 
 // 🔐 OpenIddict setup
 builder.Services.AddOpenIddict()
@@ -26,17 +47,13 @@ builder.Services.AddOpenIddict()
     })
     .AddServer(options =>
     {
-        // OIDC endpoints
         options.SetConfigurationEndpointUris("/.well-known/openid-configuration");
         options.SetAuthorizationEndpointUris("/connect/authorize");
         options.SetTokenEndpointUris("/connect/token");
         options.SetEndSessionEndpointUris("/connect/logout");
 
-        // 🔐 Certificates (for signing and encryption)
         options.AddDevelopmentEncryptionCertificate();
         options.AddDevelopmentSigningCertificate();
-
-        // 🔓 Emit JWTs instead of encrypted tokens
         options.DisableAccessTokenEncryption();
 
         options.AllowAuthorizationCodeFlow()
@@ -48,7 +65,6 @@ builder.Services.AddOpenIddict()
                .EnableAuthorizationEndpointPassthrough()
                .EnableTokenEndpointPassthrough()
                .EnableEndSessionEndpointPassthrough();
-
     })
     .AddValidation(options =>
     {
@@ -57,12 +73,10 @@ builder.Services.AddOpenIddict()
     });
 
 builder.Services.AddControllersWithViews();
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
-
 
 using (var scope = app.Services.CreateScope())
 {
@@ -82,16 +96,16 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
     var redirectUris = dbContext.AppRedirectUris
-     .Where(x => x.ClientId == "datasos_client")
-     .Select(x => new Uri(x.RedirectUri))
-     .ToList();
+        .Where(x => x.ClientId == "datasos_client")
+        .Select(x => new Uri(x.RedirectUri))
+        .ToList();
 
     var postLogoutUris = dbContext.AppRedirectUris
         .Where(x => x.ClientId == "datasos_client")
-        .Select(x => new Uri(x.PostLogoutRedirectUri!))
+        .Select(x => new Uri(x.PostLogoutRedirectUri))
         .ToList();
 
-    OpenIddictApplicationDescriptor descriptor = new OpenIddictApplicationDescriptor
+    var descriptor = new OpenIddictApplicationDescriptor
     {
         ClientId = builder.Configuration["OpenIddict:ClientId"],
         ClientSecret = builder.Configuration["OpenIddict:ClientSecret"],
@@ -101,7 +115,7 @@ using (var scope = app.Services.CreateScope())
             OpenIddictConstants.Permissions.Endpoints.Authorization,
             OpenIddictConstants.Permissions.Endpoints.Token,
             OpenIddictConstants.Permissions.Endpoints.EndSession,
-            "ept:logout",
+            //"ept:logout",
             OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
             OpenIddictConstants.Permissions.ResponseTypes.Code,
             OpenIddictConstants.Permissions.Scopes.Email,

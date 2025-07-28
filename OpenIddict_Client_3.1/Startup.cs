@@ -1,11 +1,22 @@
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.DataProtection.Repositories;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using OpenIddict_Client_3._1.DBOperations;
 using System;
+using System.IO;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace OpenIddict_Client_3._1
@@ -22,12 +33,44 @@ namespace OpenIddict_Client_3._1
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //services.AddDataProtection()
+            //    .PersistKeysToFileSystem(new DirectoryInfo(@"C:\SharedKeys"))
+            //    .SetApplicationName("SSO-OpenIddict");
+
+            services.AddSingleton<IXmlRepository>(serviceProvider =>
+            {
+                var connectionString = Configuration.GetConnectionString("DefaultConnection");
+
+                return new DapperXmlRepository(
+                    () => new SqlConnection(connectionString),
+                    serviceProvider.GetRequiredService<ILogger<DapperXmlRepository>>());
+            });
+
+            services.AddDataProtection()
+                .SetApplicationName("SSO-OpenIddict")
+                .AddKeyManagementOptions(options =>
+                {
+                    var xmlRepo = services.BuildServiceProvider().GetRequiredService<IXmlRepository>();
+                    options.XmlRepository = xmlRepo;
+                });
+
+
             services.AddAuthentication(options =>
             {
                 options.DefaultScheme = "Cookies";
                 options.DefaultChallengeScheme = "oidc";
             })
-            .AddCookie("Cookies")
+            //.AddCookie("Cookies")
+            .AddCookie("Cookies", CookieAuthenticationDefaults.AuthenticationScheme, options =>
+            {
+                options.Cookie.IsEssential = true;
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.Name = "auth_cookie";
+                options.Cookie.Domain = ".localtest.me";
+                options.SlidingExpiration = false;
+            })
             .AddOpenIdConnect("oidc", options =>
             {
                 options.Authority = Configuration["OpenIddict:Authority"]; // Server URL
@@ -39,19 +82,38 @@ namespace OpenIddict_Client_3._1
                 options.Scope.Add("openid");
                 options.Scope.Add("profile");
                 options.Scope.Add("email");
-                options.RequireHttpsMetadata = false; // Set true in production
+                options.RequireHttpsMetadata = false;
                 options.TokenValidationParameters.NameClaimType = "name";
                 options.BackchannelHttpHandler = new HttpClientHandler
                 {
                     ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
                 };
 
-                options.Events.OnSignedOutCallbackRedirect = context =>
+                options.Events = new OpenIdConnectEvents
                 {
-                    context.HandleResponse();
-                    context.Response.Redirect("/");
-                    return Task.CompletedTask;
+                    OnRedirectToIdentityProvider = context =>
+                    {
+                        var appName = "NJApp";
+                        context.ProtocolMessage.SetParameter("app_name", appName);
+
+                        return Task.CompletedTask;
+                    },
+
+                    OnSignedOutCallbackRedirect = context =>
+                    {
+                        context.HandleResponse();
+                        context.Response.Redirect("/");
+                        return Task.CompletedTask;
+                    },
+
+                    OnTokenValidated = context =>
+                    {
+                        // Explicitly override persistent flag again here (defensive)
+                        context.Properties.IsPersistent = false;
+                        return Task.CompletedTask;
+                    }
                 };
+
             });
             services.AddControllersWithViews();
         }

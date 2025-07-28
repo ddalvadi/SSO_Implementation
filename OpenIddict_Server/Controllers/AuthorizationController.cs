@@ -1,43 +1,52 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
+using OpenIddict_Server.Data;
 using System.Security.Claims;
 
 namespace OpenIddict_Server.Controllers
 {
     [Route("connect")]
-    public class AuthorizationController : Controller
+    public class AuthorizationController(IAppDbContextResolver resolver) : Controller
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
-
-        public AuthorizationController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
-        {
-            _signInManager = signInManager;
-            _userManager = userManager;
-        }
+        private readonly IAppDbContextResolver _resolver = resolver;
 
         [HttpGet("authorize")]
         public async Task<IActionResult> Authorize()
         {
+            
             if (!User.Identity?.IsAuthenticated ?? true)
             {
                 var returnUrl = Request.Path + QueryString.Create(Request.Query);
                 return Redirect($"/Account/Login?returnUrl={Uri.EscapeDataString(returnUrl)}");
             }
 
-            var user = await _userManager.GetUserAsync(User);
-            var principal = await _signInManager.CreateUserPrincipalAsync(user);
+            var appName = Request.Query["app_name"].ToString();
+            
+            ApplicationDbContext? _dbContext = _resolver.GetDbContext(appName);
+            
+            var username = User.Identity.Name;
+            if (string.IsNullOrEmpty(username))
+                return Forbid(); 
+            
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == username);
+            if (user == null)
+                return Forbid(); 
+            
+            var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
 
-            var identity = (ClaimsIdentity)principal.Identity!;
-            identity.AddClaim(new Claim(OpenIddictConstants.Claims.Subject, user.Id)
-                .SetDestinations(OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken));
-            identity.AddClaim(new Claim(OpenIddictConstants.Claims.Name, user.UserName)
-                .SetDestinations(OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken));
+            var subjectClaim = new Claim(OpenIddictConstants.Claims.Subject, user.Id.ToString());
+            subjectClaim.SetDestinations(OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken);
+            identity.AddClaim(subjectClaim);
 
+            var nameClaim = new Claim(OpenIddictConstants.Claims.Name, user.Username);
+            nameClaim.SetDestinations(OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken);
+            identity.AddClaim(nameClaim);
+
+            var principal = new ClaimsPrincipal(identity);
             principal.SetScopes("openid", "profile");
             principal.SetResources("resource_server");
 
